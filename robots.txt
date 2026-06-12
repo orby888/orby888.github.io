@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.greenseal.co.il/sitemap.xml
+Sitemap: https://orby888.github.io/sitemap.xml

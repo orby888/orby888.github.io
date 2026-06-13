@@ -283,4 +283,72 @@
         });
     });
   });
+
+  /* ---------- testimonial rotators (#37) ---------- */
+  $$('[data-rotator]').forEach(function (rot) {
+    var items = $$('.tr-item', rot), dots = $$('.tr-dot', rot);
+    if (items.length < 2) { dots.forEach(function (d) { d.style.display = 'none'; }); return; }
+    var i = 0, timer = null;
+    var show = function (n) {
+      i = ((n % items.length) + items.length) % items.length;
+      items.forEach(function (it, j) { it.classList.toggle('on', j === i); });
+      dots.forEach(function (d, j) { d.classList.toggle('on', j === i); if (j === i) d.setAttribute('aria-selected', 'true'); else d.removeAttribute('aria-selected'); });
+    };
+    var stop = function () { if (timer) { clearInterval(timer); timer = null; } };
+    var play = function () { if (reduced) return; stop(); timer = setInterval(function () { show(i + 1); }, 5000); };
+    dots.forEach(function (d, j) { d.addEventListener('click', function () { show(j); play(); }); });
+    rot.addEventListener('mouseenter', stop);
+    rot.addEventListener('mouseleave', play);
+    var rio = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) play(); else stop(); }); }, { threshold: 0.25 });
+    rio.observe(rot);
+  });
+
+  /* ---------- accessibility widget (#26) ---------- */
+  (function () {
+    var btn = $('#a11yBtn'), panel = $('#a11yPanel');
+    if (!btn || !panel) return;
+    var h = document.documentElement;
+    var TOGGLES = ['contrast', 'negative', 'gray', 'light', 'links', 'readfont'];
+    var ZOOMS = [0.9, 1, 1.15, 1.3, 1.5];
+    var state = {};
+    try { state = JSON.parse(localStorage.getItem('gs-a11y') || '{}'); } catch (e) { state = {}; }
+    function save() { try { localStorage.setItem('gs-a11y', JSON.stringify(state)); } catch (e) {} }
+    function apply() {
+      TOGGLES.forEach(function (k) { h.classList.toggle('a11y-' + k, !!state[k]); });
+      if (state.zoom && state.zoom !== '1') h.style.setProperty('--a11y-zoom', state.zoom); else h.style.removeProperty('--a11y-zoom');
+      // sync button states
+      $$('[data-a11y]', panel).forEach(function (b) {
+        var k = b.dataset.a11y;
+        if (TOGGLES.indexOf(k) !== -1) b.classList.toggle('on', !!state[k]);
+      });
+      var fz = $('[data-a11y="font-up"]', panel);
+      if (fz) { var z = parseFloat(state.zoom || '1'); fz.classList.toggle('on', z > 1); var fd = $('[data-a11y="font-down"]', panel); if (fd) fd.classList.toggle('on', z < 1); }
+    }
+    function setZoom(dir) {
+      var z = parseFloat(state.zoom || '1');
+      var idx = ZOOMS.indexOf(z); if (idx === -1) idx = 1;
+      idx = Math.max(0, Math.min(ZOOMS.length - 1, idx + dir));
+      state.zoom = String(ZOOMS[idx]);
+    }
+    $$('[data-a11y]', panel).forEach(function (b) {
+      b.addEventListener('click', function () {
+        var k = b.dataset.a11y;
+        if (k === 'reset') { state = {}; h.removeAttribute('style'); }
+        else if (k === 'font-up') setZoom(1);
+        else if (k === 'font-down') setZoom(-1);
+        else {
+          if (k === 'negative' && !state[k]) state.contrast = false;
+          if (k === 'contrast' && !state[k]) state.negative = false;
+          state[k] = !state[k];
+        }
+        apply(); save();
+      });
+    });
+    var open = false;
+    function toggle(o) { open = o; panel.classList.toggle('open', open); btn.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+    btn.addEventListener('click', function () { toggle(!open); });
+    document.addEventListener('click', function (e) { if (open && !panel.contains(e.target) && !btn.contains(e.target)) toggle(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && open) { toggle(false); btn.focus(); } });
+    apply();
+  })();
 })();

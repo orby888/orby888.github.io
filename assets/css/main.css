@@ -265,6 +265,74 @@ a.st:hover .t{color:var(--brand-d);}
 .tst blockquote{font-size:15px;line-height:1.8;}
 .tst cite{display:block;font-style:normal;font-size:12.5px;color:var(--muted);margin-top:10px;}
 
+/* testimonial rotator (#37) */
+.tr{background:var(--soft);border-right:2px solid var(--brand);padding:28px 30px;position:relative;}
+.tr-stage{display:grid;}
+.tr-item{grid-area:1/1;margin:0;opacity:0;transform:translateY(8px);transition:opacity .6s cubic-bezier(.19,1,.22,1),transform .6s cubic-bezier(.19,1,.22,1);pointer-events:none;}
+.tr-item.on{opacity:1;transform:none;pointer-events:auto;}
+.tr-item blockquote{font-size:15.5px;line-height:1.85;color:var(--ink);}
+.tr-item figcaption{font-size:13px;color:var(--muted);margin-top:12px;}
+.tr[data-big]{padding:44px 46px;text-align:center;}
+.tr[data-big] .tr-item blockquote{font-size:clamp(17px,2vw,22px);font-weight:200;line-height:1.7;color:var(--ink2);}
+.tr[data-big] .tr-item figcaption{font-size:14px;margin-top:18px;color:var(--brand-d);}
+.tr-dots{display:flex;gap:8px;justify-content:flex-start;margin-top:22px;flex-wrap:wrap;}
+.tr[data-big] .tr-dots{justify-content:center;}
+.tr-dot{width:7px;height:7px;border-radius:50%;background:var(--line);padding:0;border:0;cursor:pointer;transition:background .3s,transform .3s;}
+.tr-dot:hover{background:var(--muted);}
+.tr-dot.on{background:var(--brand);transform:scale(1.3);}
+
+/* social icons (#29) */
+.fsocial,.h-social,.m-social{display:flex;gap:10px;align-items:center;}
+.fsocial a,.h-social a,.m-social a{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--ink2);transition:background .3s,color .3s,border-color .3s,transform .3s;}
+.fsocial a svg,.h-social a svg,.m-social a svg{width:17px;height:17px;fill:currentColor;}
+.fsocial a:hover,.h-social a:hover,.m-social a:hover{background:var(--brand);border-color:var(--brand);color:var(--brand-deep);transform:translateY(-2px);}
+.fsocial-label{display:block;font-size:11px;letter-spacing:.16em;color:var(--muted);margin-bottom:12px;}
+.fsocial{justify-content:flex-start;}
+.h-social{gap:6px;}
+.h-social a{width:30px;height:30px;border-color:rgba(255,255,255,.4);color:#fff;}
+header.site.onhero .h-social a{border-color:rgba(255,255,255,.4);color:#fff;}
+header.site:not(.onhero) .h-social a{border-color:var(--line);color:var(--ink2);}
+.h-social a:hover{background:var(--brand);border-color:var(--brand);color:var(--brand-deep);}
+.m-social{justify-content:center;margin-top:26px;}
+.m-social a{width:44px;height:44px;}
+
+/* Andersen logo placements (#28) */
+.fbrand{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;}
+.fbrand .ftag{margin:0;}
+.andersen-logo-f{height:26px;width:auto;}
+.brand-strip{display:flex;align-items:center;justify-content:center;gap:14px;margin:0 auto 10px;flex-wrap:wrap;}
+.brand-strip .label{margin:0;}
+.brand-strip img{height:30px;width:auto;}
+.brand-stacked{text-align:center;margin:0 auto 30px;}
+.brand-stacked img{height:150px;width:auto;max-width:90%;}
+
+/* accessibility widget (#26) */
+.a11y-btn{position:fixed;bottom:90px;left:26px;z-index:75;width:50px;height:50px;border-radius:50%;background:var(--ink2);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px -10px rgba(0,0,0,.5);transition:transform .3s;}
+.a11y-btn:hover{transform:scale(1.08);}
+.a11y-btn svg{width:26px;height:26px;fill:#fff;}
+.a11y-panel{position:fixed;bottom:150px;left:26px;z-index:76;width:280px;max-width:calc(100vw - 40px);background:#fff;border:1px solid var(--line);box-shadow:0 24px 60px -20px rgba(0,0,0,.4);padding:18px;opacity:0;transform:translateY(12px) scale(.98);transform-origin:bottom left;pointer-events:none;transition:opacity .3s,transform .3s;}
+.a11y-panel.open{opacity:1;transform:none;pointer-events:auto;}
+.a11y-panel h3{font-size:14px;font-weight:500;margin-bottom:4px;color:var(--ink2);}
+.a11y-panel .sub{font-size:11px;color:var(--muted);margin-bottom:14px;}
+.a11y-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.a11y-grid button{font-family:inherit;font-size:12.5px;padding:10px 8px;border:1px solid var(--line);background:var(--bg);color:var(--ink2);cursor:pointer;border-radius:4px;transition:all .25s;text-align:center;}
+.a11y-grid button:hover{border-color:var(--brand);}
+.a11y-grid button.on{background:var(--brand);border-color:var(--brand);color:var(--brand-deep);font-weight:500;}
+.a11y-grid button.full{grid-column:1/-1;}
+.a11y-reset{grid-column:1/-1;background:var(--ink2)!important;color:#fff!important;border-color:var(--ink2)!important;}
+.a11y-state{font-size:11px;color:var(--muted);text-align:center;margin-top:8px;}
+.a11y-panel .a11y-statement{display:block;text-align:center;font-size:12px;color:var(--brand-d);margin-top:12px;border-top:1px solid var(--line);padding-top:12px;}
+
+/* accessibility modes — applied to content blocks, not the widget itself */
+html.a11y-gray #main,html.a11y-gray header.site,html.a11y-gray footer.site{filter:grayscale(1);}
+html.a11y-contrast #main,html.a11y-contrast header.site,html.a11y-contrast footer.site{filter:contrast(1.4) saturate(1.15);}
+html.a11y-negative #main,html.a11y-negative header.site,html.a11y-negative footer.site{filter:invert(1) hue-rotate(180deg);}
+html.a11y-light #main,html.a11y-light #main *{background-color:#fff!important;color:#111!important;border-color:#999!important;}
+html.a11y-light #main a{color:#0a47a1!important;}
+html.a11y-links a{text-decoration:underline!important;}
+html.a11y-readfont #main,html.a11y-readfont #main *{font-family:Arial,"Segoe UI",sans-serif!important;}
+#main,footer.site{zoom:var(--a11y-zoom,1);}
+
 /* cards grid (projects index, magazine) */
 .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-bottom:110px;}
 .card-p{position:relative;display:block;overflow:hidden;background:#fff;border:1px solid var(--line);}
@@ -430,7 +498,13 @@ footer.site .mono{font-size:10px;color:#6E6E68;margin-top:40px;display:block;tex
 }
 @media (max-width:760px){
   :root{--pad:20px;}
-  .nav-d,.h-phone,.btn-hd{display:none;}
+  .nav-d,.h-phone,.btn-hd,.h-social{display:none;}
+  .brand-stacked img{height:110px;}
+  .andersen-logo-f{height:22px;}
+  .a11y-btn{bottom:74px;width:46px;height:46px;}
+  .a11y-panel{bottom:128px;left:16px;right:16px;width:auto;}
+  .tr[data-big]{padding:30px 20px;}
+  .tr{padding:22px 20px;}
   .menu-btn{display:block;}
   header.site{padding:14px var(--pad);}
   header.site.scrolled{padding:10px var(--pad);}

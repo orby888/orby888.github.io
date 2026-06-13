@@ -122,7 +122,7 @@ body.menu-open .mnav a.mi{opacity:1;transform:none;}
 .cinema .veil2{position:absolute;inset:0;background:#0D100D;opacity:0;will-change:opacity;}
 .cinema .topscrim{position:absolute;top:0;right:0;left:0;height:240px;background:linear-gradient(to bottom,rgba(13,16,13,.6),rgba(13,16,13,0));}
 .cinema h1{color:#fff;text-shadow:0 2px 28px rgba(0,0,0,.38);}
-.hero-andersen{position:absolute;top:35.5%;right:var(--pad);left:auto;text-align:right;transform:translateY(-50%);z-index:3;pointer-events:none;opacity:1;will-change:opacity;}
+.hero-andersen{position:absolute;top:30%;right:var(--pad);left:auto;text-align:right;transform:translateY(-50%);z-index:3;pointer-events:none;opacity:1;will-change:opacity;}
 .hero-andersen span{display:inline-block;color:#B8F0CE;font-size:12px;font-weight:600;letter-spacing:.3em;padding-inline-start:.3em;text-shadow:0 1px 14px rgba(0,0,0,.65);opacity:0;}
 body.go .hero-andersen span{animation:fade 1.2s .5s forwards;}
 .phaseA{position:absolute;right:var(--pad);bottom:78px;max-width:840px;will-change:opacity,transform;transform:translateY(0);}

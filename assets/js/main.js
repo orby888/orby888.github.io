@@ -93,6 +93,21 @@
     var outImg = $('.cinema .outside img'), inPh = $('.cinema .inside'), inImg = inPh ? inPh.querySelector('img') : null;
     var phaseA = $('#phaseA'), phaseB = $('#phaseB'), veil2 = $('#veil2'), heroAndersen = $('#heroAndersen');
     var target = 0, state = 0;
+
+    /* place the Andersen label on the pergola beam regardless of viewport aspect (object-fit:cover math) */
+    var stick = $('.cinema .stick');
+    var IMG_RATIO = 800 / 533;   // MAIN.jpg aspect (w/h)
+    var BEAM_FRAC = 0.355;       // beam center as a fraction of the image height
+    function placeBeam() {
+      if (!heroAndersen || !stick) return;
+      var W = stick.clientWidth, H = stick.clientHeight;
+      var dispH = (W / H > IMG_RATIO) ? (W / IMG_RATIO) : H;  // displayed image height after cover
+      var top = (H - dispH) / 2 + BEAM_FRAC * dispH;
+      heroAndersen.style.top = top + 'px';
+    }
+    placeBeam();
+    addEventListener('resize', placeBeam);
+    addEventListener('load', placeBeam);
     (function heroLoop() {
       var total = cinema.offsetHeight - innerHeight;
       var p = total > 0 ? Math.min(1, Math.max(0, scrollY / total)) : 0;

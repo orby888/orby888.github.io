@@ -91,7 +91,7 @@
   /* ---------- cinema hero (home) ---------- */
   if (cinema) {
     var outImg = $('.cinema .outside img'), inPh = $('.cinema .inside'), inImg = inPh ? inPh.querySelector('img') : null;
-    var phaseA = $('#phaseA'), phaseB = $('#phaseB'), veil2 = $('#veil2');
+    var phaseA = $('#phaseA'), phaseB = $('#phaseB'), veil2 = $('#veil2'), heroAndersen = $('#heroAndersen');
     var target = 0, state = 0;
     (function heroLoop() {
       var total = cinema.offsetHeight - innerHeight;
@@ -111,6 +111,7 @@
           phaseA.style.transform = 'translateY(' + (state * -36) + 'px)';
           phaseA.style.pointerEvents = state > 0.25 ? 'none' : 'auto';
         }
+        if (heroAndersen) heroAndersen.style.opacity = String(1 - Math.min(1, Math.max(0, (state - 0.06) / 0.16)));
         if (phaseB) phaseB.style.opacity = String(Math.min(1, Math.max(0, (state - 0.72) / 0.26)));
         if (veil2) veil2.style.opacity = String(state * 0.22);
       }
@@ -263,6 +264,7 @@
   $$('form[data-lead]').forEach(function (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      if (!form.checkValidity()) { form.reportValidity(); return; }
       var err = $('.f-err', form);
       if (err) err.style.display = 'none';
       var btn = $('button[type="submit"]', form);

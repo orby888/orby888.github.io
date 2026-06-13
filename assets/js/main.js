@@ -98,12 +98,16 @@
     var stick = $('.cinema .stick');
     var IMG_RATIO = 800 / 533;   // MAIN.jpg aspect (w/h)
     var BEAM_FRAC = 0.355;       // beam center as a fraction of the image height
+    var BEAM_RIGHT_FRAC = 0.14;  // text right-edge as a fraction of image width, in from the right (desktop only)
     function placeBeam() {
       if (!heroAndersen || !stick) return;
       var W = stick.clientWidth, H = stick.clientHeight;
-      var dispH = (W / H > IMG_RATIO) ? (W / IMG_RATIO) : H;  // displayed image height after cover
-      var top = (H - dispH) / 2 + BEAM_FRAC * dispH;
-      heroAndersen.style.top = top + 'px';
+      var coverByWidth = (W / H > IMG_RATIO);
+      var dispH = coverByWidth ? (W / IMG_RATIO) : H;
+      var dispW = coverByWidth ? W : (H * IMG_RATIO);
+      heroAndersen.style.top = ((H - dispH) / 2 + BEAM_FRAC * dispH) + 'px';
+      if (W >= 761) heroAndersen.style.right = ((W - dispW) / 2 + BEAM_RIGHT_FRAC * dispW) + 'px';
+      else heroAndersen.style.right = '';   // mobile keeps the CSS value (looks great)
     }
     placeBeam();
     addEventListener('resize', placeBeam);

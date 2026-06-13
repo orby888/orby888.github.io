@@ -160,6 +160,44 @@
     })();
   }
 
+  /* ---------- shared slider controls: injected arrows + swipe (RTL-aware) ---------- */
+  function addArrows(box, ariaPrev, ariaNext, onPrev, onNext) {
+    var mk = function (cls, aria, glyph) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'sld-arrow ' + cls;
+      b.setAttribute('aria-label', aria); b.textContent = glyph;
+      return b;
+    };
+    var prev = mk('prev', ariaPrev, '›'); // › on the right = previous (RTL)
+    var next = mk('next', ariaNext, '‹'); // ‹ on the left  = next/forward (RTL)
+    prev.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); onPrev(); });
+    next.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); onNext(); });
+    box.appendChild(prev); box.appendChild(next);
+  }
+  function addSwipe(box, onPrev, onNext, opts) {
+    opts = opts || {};
+    box.style.touchAction = 'pan-y';
+    var x0 = 0, y0 = 0, on = false;
+    box.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      x0 = e.clientX; y0 = e.clientY; on = true;
+      if (opts.onStart) opts.onStart();
+    });
+    var end = function (e) {
+      if (!on) return; on = false;
+      var dx = e.clientX - x0, dy = e.clientY - y0;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.3) {
+        // swallow the click that may follow the swipe (e.g. on a link inside the slide)
+        var sup = function (ev) { ev.preventDefault(); ev.stopPropagation(); box.removeEventListener('click', sup, true); };
+        box.addEventListener('click', sup, true);
+        setTimeout(function () { box.removeEventListener('click', sup, true); }, 400);
+        if (dx < 0) onNext(); else onPrev(); // RTL: swipe left = forward
+      } else if (opts.onEnd) { opts.onEnd(); }
+    };
+    box.addEventListener('pointerup', end);
+    box.addEventListener('pointercancel', function () { if (on) { on = false; if (opts.onEnd) opts.onEnd(); } });
+  }
+
   /* ---------- press showcase carousel ---------- */
   var px = $('#pressx');
   if (px) {
@@ -179,7 +217,11 @@
     };
     var stop = function () { if (timer) { clearInterval(timer); timer = null; } };
     var play = function () { stop(); timer = setInterval(function () { show(idx + 1, true); }, 4200); show(idx, true); };
-    bars.forEach(function (b, j) { b.addEventListener('click', function () { show(j, true); play(); }); });
+    var pgo = function (n) { show(n, true); if (!reduced) play(); };
+    bars.forEach(function (b, j) { b.addEventListener('click', function () { pgo(j); }); });
+    var frame = $('.px-frame', px) || px;
+    addArrows(frame, 'הכתבה הקודמת', 'הכתבה הבאה', function () { pgo(idx - 1); }, function () { pgo(idx + 1); });
+    addSwipe(px, function () { pgo(idx - 1); }, function () { pgo(idx + 1); }, { onStart: stop, onEnd: function () { if (!reduced) play(); } });
     if (reduced) { show(0, false); bars.forEach(function (b) { b.classList.add('full'); }); }
     else {
       px.addEventListener('mouseenter', stop);
@@ -322,6 +364,9 @@
     var stop = function () { if (timer) { clearInterval(timer); timer = null; } };
     var play = function () { if (reduced) return; stop(); timer = setInterval(function () { show(i + 1); }, 5000); };
     dots.forEach(function (d, j) { d.addEventListener('click', function () { show(j); play(); }); });
+    var go = function (n) { show(n); play(); };
+    addArrows(rot, 'ההמלצה הקודמת', 'ההמלצה הבאה', function () { go(i - 1); }, function () { go(i + 1); });
+    addSwipe(rot, function () { go(i - 1); }, function () { go(i + 1); }, { onStart: stop, onEnd: play });
     rot.addEventListener('mouseenter', stop);
     rot.addEventListener('mouseleave', play);
     var rio = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) play(); else stop(); }); }, { threshold: 0.25 });

@@ -175,7 +175,7 @@
         if (j < idx) b.classList.add('full');
         else if (j === idx) b.classList.add(animate ? 'run' : 'full');
       });
-      if (count) count.textContent = String(idx + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0') + ' · מתוך 10 כתבות ארציות';
+      if (count) count.textContent = String(idx + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0') + ' · כתבות ארציות';
     };
     var stop = function () { if (timer) { clearInterval(timer); timer = null; } };
     var play = function () { stop(); timer = setInterval(function () { show(idx + 1, true); }, 4200); show(idx, true); };

@@ -1,11 +1,11 @@
-/* self-hosted fonts — generated */
+/* self-hosted fonts - generated */
 @font-face{font-family:'Heebo';font-style:normal;font-weight:100 900;font-display:swap;src:url('/assets/fonts/Heebo-hebrew-100_900.woff2') format('woff2');unicode-range:U+0307-0308, U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;}
 @font-face{font-family:'Heebo';font-style:normal;font-weight:100 900;font-display:swap;src:url('/assets/fonts/Heebo-latin-100_900.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
 @font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:300;font-display:swap;src:url('/assets/fonts/IBMPlexMono-latin-300.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
 @font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:400;font-display:swap;src:url('/assets/fonts/IBMPlexMono-latin-400.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
 
 /* ============================================================
-   Green Seal — מערכת העיצוב של האתר
+   Green Seal - מערכת העיצוב של האתר
    ירוק המותג #3DB86B · פחם #454646 · שנהב #FBFAF8
    ============================================================ */
 
@@ -231,7 +231,7 @@ section.wrap,div.wrap-x{padding:0 var(--pad);position:relative;}
 .win.open .sash .l{transform:rotateY(78deg);}
 
 /* numbers band */
-.nums{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line);border-top:1px solid var(--line);}
+.nums{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--line);border-top:1px solid var(--line);}
 .nums > div{padding:64px 26px;text-align:center;border-inline-start:1px solid var(--line);}
 .nums > div:first-child{border-inline-start:none;}
 .nums .n{font-size:56px;font-weight:100;color:var(--brand-d);font-variant-numeric:tabular-nums;}
@@ -250,7 +250,7 @@ a.st:hover .t{color:var(--brand-d);}
 .rail .t{font-size:16px;font-weight:400;margin:10px 0 6px;color:var(--ink2);transition:color .35s;}
 .rail .d{font-size:13px;color:var(--muted);line-height:1.7;}
 
-/* process page — vertical timeline */
+/* process page - vertical timeline */
 .tline{max-width:760px;margin:70px auto 0;position:relative;padding-bottom:30px;}
 .tline::before{content:"";position:absolute;top:6px;bottom:0;right:7px;width:1px;background:var(--line);}
 .tstep{position:relative;padding:0 44px 46px 0;}
@@ -453,10 +453,9 @@ footer.site .mono{font-size:10px;color:#6E6E68;margin-top:40px;display:block;tex
   .strip .card{position:static;max-width:none;padding:22px 0 0;}
   .dict{padding:64px var(--pad);}
   .dict .grid{grid-template-columns:1fr;gap:40px;}
-  .nums{grid-template-columns:1fr 1fr;}
-  .nums > div{padding:34px 14px;}
-  .nums > div:nth-child(3){border-inline-start:none;border-top:1px solid var(--line);}
-  .nums > div:nth-child(4){border-top:1px solid var(--line);}
+  .nums{grid-template-columns:1fr;}
+  .nums > div{padding:30px 14px;border-inline-start:none;}
+  .nums > div + div{border-top:1px solid var(--line);}
   .rail{grid-template-columns:1fr;gap:28px;}
   .rail::before{display:none;}
   .rail .st{padding:0 26px 0 0;}

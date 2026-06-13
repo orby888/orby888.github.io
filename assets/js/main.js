@@ -1,4 +1,4 @@
-/* Green Seal — site behaviors */
+/* Green Seal - site behaviors */
 (function () {
   'use strict';
   var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;

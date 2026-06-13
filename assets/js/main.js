@@ -184,10 +184,16 @@
     else {
       px.addEventListener('mouseenter', stop);
       px.addEventListener('mouseleave', play);
-      var pio = new IntersectionObserver(function (es) {
-        es.forEach(function (e) { if (e.isIntersecting) { play(); pio.unobserve(px); } });
-      }, { threshold: 0.35 });
-      pio.observe(px);
+      var started = false;
+      var begin = function () { if (started) return; started = true; play(); };
+      if ('IntersectionObserver' in window) {
+        var pio = new IntersectionObserver(function (es) {
+          es.forEach(function (e) { if (e.isIntersecting) { begin(); pio.unobserve(px); } });
+        }, { threshold: 0.1 });
+        pio.observe(px);
+      }
+      /* safety net: never stay stuck on the first slide even if the observer never fires */
+      setTimeout(begin, 3000);
     }
   }
 

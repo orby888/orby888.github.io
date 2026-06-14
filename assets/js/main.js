@@ -6,6 +6,10 @@
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return [].slice.call((c || document).querySelectorAll(s)); };
 
+  /* always open at the top (don't restore previous scroll), but respect #anchors */
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  addEventListener('pageshow', function () { if (!location.hash) scrollTo(0, 0); });
+
   /* ---------- preloader (once per session) ---------- */
   var pre = $('#pre');
   if (pre) {
@@ -63,14 +67,19 @@
   var hd = $('header.site');
   var cinema = $('#cinema');
   var bar = $('#bar');
+  var lastChromeY = -1;
   (function chrome() {
-    var h = document.documentElement;
-    if (bar) bar.style.width = (h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight) * 100) + '%';
-    if (hd) {
-      hd.classList.toggle('scrolled', scrollY > 40);
-      var heroEl = cinema || $('.phero.has-img');
-      if (heroEl) hd.classList.toggle('onhero', scrollY < heroEl.offsetHeight - innerHeight * (cinema ? 0.5 : 0.15) - (cinema ? 0 : heroEl.offsetHeight * 0.35));
-      else hd.classList.remove('onhero');
+    var y = scrollY;
+    if (y !== lastChromeY) {
+      lastChromeY = y;
+      var h = document.documentElement;
+      if (bar) bar.style.width = (h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight) * 100) + '%';
+      if (hd) {
+        hd.classList.toggle('scrolled', y > 40);
+        var heroEl = cinema || $('.phero.has-img');
+        if (heroEl) hd.classList.toggle('onhero', y < heroEl.offsetHeight - innerHeight * (cinema ? 0.5 : 0.15) - (cinema ? 0 : heroEl.offsetHeight * 0.35));
+        else hd.classList.remove('onhero');
+      }
     }
     requestAnimationFrame(chrome);
   })();
@@ -112,7 +121,7 @@
     placeBeam();
     addEventListener('resize', placeBeam);
     addEventListener('load', placeBeam);
-    (function heroLoop() {
+    if (!reduced) (function heroLoop() {
       var total = cinema.offsetHeight - innerHeight;
       var p = total > 0 ? Math.min(1, Math.max(0, scrollY / total)) : 0;
       if (p > 0.08) target = 1; else if (p < 0.03) target = 0;
@@ -150,7 +159,7 @@
     (function par() {
       var vh = innerHeight;
       pars.forEach(function (el) {
-        var host = el.closest('.strip'); if (!host) return;
+        var host = el.closest('.strip, .phero'); if (!host) return;
         var r = host.getBoundingClientRect();
         if (r.bottom < 0 || r.top > vh) return;
         var t = (r.top + r.height / 2 - vh / 2) / vh;
@@ -301,7 +310,9 @@
     var items = $$('.gal a');
     var lbImg = $('#lb img'), lbCap = $('.lbcap', lb), lbCount = $('.lbcount', lb);
     var cur = 0;
+    var openedFrom = null;
     var openLb = function (i) {
+      openedFrom = document.activeElement;
       cur = ((i % items.length) + items.length) % items.length;
       var a = items[cur];
       lbImg.src = a.getAttribute('href');
@@ -310,8 +321,9 @@
       lbCount.textContent = (cur + 1) + ' / ' + items.length;
       lb.classList.add('open');
       document.body.style.overflow = 'hidden';
+      var x = $('.lbx', lb); if (x) x.focus();
     };
-    var closeLb = function () { lb.classList.remove('open'); document.body.style.overflow = ''; };
+    var closeLb = function () { lb.classList.remove('open'); document.body.style.overflow = ''; if (openedFrom && openedFrom.focus) openedFrom.focus(); };
     items.forEach(function (a, i) {
       a.addEventListener('click', function (e) { e.preventDefault(); openLb(i); });
     });
@@ -322,8 +334,15 @@
     addEventListener('keydown', function (e) {
       if (!lb.classList.contains('open')) return;
       if (e.key === 'Escape') closeLb();
-      if (e.key === 'ArrowLeft') openLb(cur + 1);
-      if (e.key === 'ArrowRight') openLb(cur - 1);
+      else if (e.key === 'ArrowLeft') openLb(cur + 1);
+      else if (e.key === 'ArrowRight') openLb(cur - 1);
+      else if (e.key === 'Tab') {
+        var f = $$('.lbx, .lbn, .lbp', lb).filter(function (el) { return el.offsetParent !== null; });
+        if (!f.length) return;
+        var first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
     });
   }
 
@@ -403,7 +422,7 @@
     $$('[data-a11y]', panel).forEach(function (b) {
       b.addEventListener('click', function () {
         var k = b.dataset.a11y;
-        if (k === 'reset') { state = {}; h.removeAttribute('style'); }
+        if (k === 'reset') { state = {}; h.style.removeProperty('--a11y-zoom'); }
         else if (k === 'font-up') setZoom(1);
         else if (k === 'font-down') setZoom(-1);
         else {

@@ -5,4 +5,5 @@ Header set X-Content-Type-Options "nosniff"
 Header set X-Frame-Options "SAMEORIGIN"
 Header set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
-Redirect 301 /%D7%A9%D7%99%D7%A8%D7%95%D7%AA/ /%D7%97%D7%9C%D7%95%D7%A0%D7%95%D7%AA-%D7%93%D7%9C%D7%AA%D7%95%D7%AA/
+Redirect 301 /%D7%A9%D7%99%D7%A8%D7%95%D7%AA/ /%D7%97%D7%9C%D7%95%D7%A0%D7%95%D7%AA-%D7%95%D7%93%D7%9C%D7%AA%D7%95%D7%AA/
+Redirect 301 /magazin/elementor-1234/ /magazin/%D7%97%D7%9C%D7%95%D7%A0%D7%95%D7%AA-%D7%9E%D7%91%D7%95%D7%93%D7%93%D7%99%D7%9D-andersen-%D7%A2%D7%A5-%D7%95%D7%A4%D7%99%D7%99%D7%91%D7%A8%D7%A7%D7%A1/

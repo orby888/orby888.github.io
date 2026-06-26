@@ -362,6 +362,7 @@
         .then(function (j) {
           if (j && String(j.success) === 'false') throw new Error('not delivered');
           form.classList.add('sent');
+          if (window.gtag) { try { gtag('event', 'generate_lead', { form_id: form.id || form.getAttribute('data-lead') || 'lead' }); } catch (e) {} }
         })
         .catch(function () {
           if (err) err.style.display = 'block';

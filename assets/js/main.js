@@ -27,62 +27,33 @@
     document.body.classList.add('go');
   }
 
-  /* ---------- smooth inertial wheel scrolling ---------- */
-  if (fine && !reduced) {
-    var sCur = scrollY, sTgt = scrollY, wheeling = false, wheelT = 0;
-    addEventListener('wheel', function (e) {
-      if (e.ctrlKey) return;
-      if (document.body.classList.contains('menu-open')) return;
-      var lb = $('#lb'); if (lb && lb.classList.contains('open')) return;
-      e.preventDefault();
-      var max = document.documentElement.scrollHeight - innerHeight;
-      sTgt = Math.max(0, Math.min(max, sTgt + e.deltaY));
-      wheeling = true; wheelT = performance.now();
-    }, { passive: false });
-    (function smooth() {
-      if (wheeling) {
-        sCur += (sTgt - sCur) * 0.085;
-        if (Math.abs(sTgt - sCur) < 0.4) { sCur = sTgt; if (performance.now() - wheelT > 300) wheeling = false; }
-        scrollTo(0, sCur);
-      } else { sCur = sTgt = scrollY; }
-      requestAnimationFrame(smooth);
-    })();
-  }
+  /* native scrolling — the smooth-scroll wheel hijack was removed: it fought the browser's
+     native scroll (scrollTo every frame) and was the main cause of the "heavy" feel.
+     Native scrolling is smooth and light. */
 
-  /* ---------- custom cursor ---------- */
-  if (fine) {
-    var dot = $('#dot'), ring = $('#ring');
-    if (dot && ring) {
-      var mx = innerWidth / 2, my = innerHeight / 2, rx = mx, ry = my;
-      addEventListener('mousemove', function (e) { mx = e.clientX; my = e.clientY; dot.style.left = mx + 'px'; dot.style.top = my + 'px'; });
-      (function follow() { rx += (mx - rx) * 0.14; ry += (my - ry) * 0.14; ring.style.left = rx + 'px'; ring.style.top = ry + 'px'; requestAnimationFrame(follow); })();
-      $$('[data-hover]').forEach(function (el) {
-        el.addEventListener('mouseenter', function () { ring.classList.add('big'); });
-        el.addEventListener('mouseleave', function () { ring.classList.remove('big'); });
-      });
-    }
-  }
+  /* custom cursor removed for performance: it ran a perpetual rAF and wrote left/top on
+     every mousemove (jank), and is not part of the cinematic hero. #dot/#ring no longer render. */
 
-  /* ---------- header + progress ---------- */
+  /* ---------- header + progress (scroll-driven, no idle rAF) ---------- */
   var hd = $('header.site');
   var cinema = $('#cinema');
   var bar = $('#bar');
-  var lastChromeY = -1;
-  (function chrome() {
-    var y = scrollY;
-    if (y !== lastChromeY) {
-      lastChromeY = y;
-      var h = document.documentElement;
-      if (bar) bar.style.width = (h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight) * 100) + '%';
-      if (hd) {
-        hd.classList.toggle('scrolled', y > 40);
-        var heroEl = cinema || $('.phero.has-img');
-        if (heroEl) hd.classList.toggle('onhero', y < heroEl.offsetHeight - innerHeight * (cinema ? 0.5 : 0.15) - (cinema ? 0 : heroEl.offsetHeight * 0.35));
-        else hd.classList.remove('onhero');
-      }
+  var heroEl = cinema || $('.phero.has-img');
+  var heroH = heroEl ? heroEl.offsetHeight : 0;
+  addEventListener('resize', function () { heroH = heroEl ? heroEl.offsetHeight : 0; }, { passive: true });
+  var chromeTick = false;
+  function chrome() {
+    chromeTick = false;
+    var h = document.documentElement, y = h.scrollTop;
+    if (bar) bar.style.width = (y / Math.max(1, h.scrollHeight - h.clientHeight) * 100) + '%';
+    if (hd) {
+      hd.classList.toggle('scrolled', y > 40);
+      if (heroEl) hd.classList.toggle('onhero', y < heroH - innerHeight * (cinema ? 0.5 : 0.15) - (cinema ? 0 : heroH * 0.35));
+      else hd.classList.remove('onhero');
     }
-    requestAnimationFrame(chrome);
-  })();
+  }
+  addEventListener('scroll', function () { if (!chromeTick) { chromeTick = true; requestAnimationFrame(chrome); } }, { passive: true });
+  chrome();
 
   /* ---------- mobile menu ---------- */
   var mbtn = $('.menu-btn');
@@ -121,13 +92,14 @@
     placeBeam();
     addEventListener('resize', placeBeam);
     addEventListener('load', placeBeam);
-    if (!reduced) (function heroLoop() {
-      var total = cinema.offsetHeight - innerHeight;
-      var p = total > 0 ? Math.min(1, Math.max(0, scrollY / total)) : 0;
-      if (p > 0.08) target = 1; else if (p < 0.03) target = 0;
-      state += (target - state) * 0.05;
-      if (Math.abs(target - state) < 0.0005) state = target;
-      if (!reduced) {
+    if (!reduced) {
+      var heroRunning = false;
+      var heroLoop = function () {
+        var total = cinema.offsetHeight - innerHeight;
+        var p = total > 0 ? Math.min(1, Math.max(0, scrollY / total)) : 0;
+        if (p > 0.08) target = 1; else if (p < 0.03) target = 0;
+        state += (target - state) * 0.05;
+        if (Math.abs(target - state) < 0.0005) state = target;
         if (outImg) {
           outImg.style.transform = 'scale(' + (1 + state * 0.34) + ')';
           outImg.style.opacity = String(1 - Math.min(1, Math.max(0, (state - 0.45) / 0.4)));
@@ -142,9 +114,13 @@
         if (heroAndersen) heroAndersen.style.opacity = String(1 - Math.min(1, Math.max(0, (state - 0.06) / 0.16)));
         if (phaseB) phaseB.style.opacity = String(Math.min(1, Math.max(0, (state - 0.72) / 0.26)));
         if (veil2) veil2.style.opacity = String(state * 0.22);
-      }
-      requestAnimationFrame(heroLoop);
-    })();
+        /* keep animating only while in the hero region or while easing is still settling */
+        if (scrollY < cinema.offsetHeight || state !== target) requestAnimationFrame(heroLoop);
+        else heroRunning = false;
+      };
+      addEventListener('scroll', function () { if (!heroRunning) { heroRunning = true; requestAnimationFrame(heroLoop); } }, { passive: true });
+      heroRunning = true; requestAnimationFrame(heroLoop);
+    }
   }
 
   /* ---------- reveal on scroll ---------- */
@@ -153,20 +129,24 @@
   }, { threshold: 0.15 });
   $$('[data-io]').forEach(function (el) { io.observe(el); });
 
-  /* ---------- gentle parallax in strips ---------- */
+  /* ---------- gentle parallax in strips (scroll-driven; batched reads then writes) ---------- */
   var pars = $$('[data-par]');
   if (pars.length && !reduced) {
-    (function par() {
+    var parEls = pars.map(function (el) { return { el: el, host: el.closest('.strip, .phero') }; }).filter(function (o) { return o.host; });
+    var parTick = false;
+    var parRun = function () {
+      parTick = false;
       var vh = innerHeight;
-      pars.forEach(function (el) {
-        var host = el.closest('.strip, .phero'); if (!host) return;
-        var r = host.getBoundingClientRect();
-        if (r.bottom < 0 || r.top > vh) return;
-        var t = (r.top + r.height / 2 - vh / 2) / vh;
-        el.style.transform = 'translateY(' + (t * -6) + '%)';
+      var reads = parEls.map(function (o) { return { el: o.el, r: o.host.getBoundingClientRect() }; }); // all reads first
+      reads.forEach(function (o) {                                                                       // then all writes
+        if (o.r.bottom < 0 || o.r.top > vh) return;
+        var t = (o.r.top + o.r.height / 2 - vh / 2) / vh;
+        o.el.style.transform = 'translateY(' + (t * -6) + '%)';
       });
-      requestAnimationFrame(par);
-    })();
+    };
+    addEventListener('scroll', function () { if (!parTick) { parTick = true; requestAnimationFrame(parRun); } }, { passive: true });
+    addEventListener('resize', function () { if (!parTick) { parTick = true; requestAnimationFrame(parRun); } }, { passive: true });
+    parRun();
   }
 
   /* ---------- shared slider controls: injected arrows + swipe (RTL-aware) ---------- */

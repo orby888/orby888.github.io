@@ -58,6 +58,16 @@
     }
   }
 
+  /* ---------- smooth scroll (Lenis): flowing motion, off for reduced-motion, one-line kill-switch ---------- */
+  var SMOOTH = true;   // ← set to false to turn smooth scrolling off entirely
+  var lenis = (SMOOTH && !reduced && window.Lenis)
+    ? (function () { try { return new Lenis({ lerp: 0.1, smoothWheel: true, wheelMultiplier: 1 }); } catch (e) { return null; } })()
+    : null;
+  document.documentElement.classList.toggle('has-smooth', !!lenis);
+  var heroFrame = null;   // assigned by the cinema hero below; driven here every frame while smooth scroll is on
+  function rafLoop(t) { if (lenis) lenis.raf(t); if (heroFrame) heroFrame(); requestAnimationFrame(rafLoop); }
+  if (lenis) requestAnimationFrame(rafLoop);
+
   /* ---------- header + progress (scroll-driven, no idle rAF) ---------- */
   var hd = $('header.site');
   var cinema = $('#cinema');
@@ -117,33 +127,34 @@
     addEventListener('resize', placeBeam);
     addEventListener('load', placeBeam);
     if (!reduced) {
-      var heroRunning = false;
-      var heroLoop = function () {
+      /* scroll-LINKED hero (no spring/hysteresis) → follows the scroll 1:1, so it never "jumps".
+         Lenis smooths the scroll value, so the motion stays continuous and buttery.
+         Driven by rafLoop when smooth scroll is on, else by a native-scroll fallback below. */
+      var lastHeroY = -1;
+      heroFrame = function () {
+        if (scrollY === lastHeroY) return; lastHeroY = scrollY;
         var total = cinema.offsetHeight - innerHeight;
-        var p = total > 0 ? Math.min(1, Math.max(0, scrollY / total)) : 0;
-        if (p > 0.08) target = 1; else if (p < 0.03) target = 0;
-        state += (target - state) * 0.05;
-        if (Math.abs(target - state) < 0.0005) state = target;
+        var s = total > 0 ? Math.min(1, Math.max(0, scrollY / total)) : 0;
         if (outImg) {
-          outImg.style.transform = 'scale(' + (1 + state * 0.34) + ')';
-          outImg.style.opacity = String(1 - Math.min(1, Math.max(0, (state - 0.45) / 0.4)));
+          outImg.style.transform = 'scale(' + (1 + s * 0.34) + ')';
+          outImg.style.opacity = String(1 - Math.min(1, Math.max(0, (s - 0.45) / 0.4)));
         }
-        if (inPh) inPh.style.opacity = String(Math.min(1, Math.max(0, (state - 0.3) / 0.4)));
-        if (inImg) inImg.style.transform = 'scale(' + (1.2 - state * 0.2) + ')';
+        if (inPh) inPh.style.opacity = String(Math.min(1, Math.max(0, (s - 0.3) / 0.4)));
+        if (inImg) inImg.style.transform = 'scale(' + (1.2 - s * 0.2) + ')';
         if (phaseA) {
-          phaseA.style.opacity = String(1 - Math.min(1, Math.max(0, (state - 0.1) / 0.16)));
-          phaseA.style.transform = 'translateY(' + (state * -36) + 'px)';
-          phaseA.style.pointerEvents = state > 0.25 ? 'none' : 'auto';
+          phaseA.style.opacity = String(1 - Math.min(1, Math.max(0, (s - 0.1) / 0.16)));
+          phaseA.style.transform = 'translateY(' + (s * -36) + 'px)';
+          phaseA.style.pointerEvents = s > 0.25 ? 'none' : 'auto';
         }
-        if (heroAndersen) heroAndersen.style.opacity = String(1 - Math.min(1, Math.max(0, (state - 0.06) / 0.16)));
-        if (phaseB) phaseB.style.opacity = String(Math.min(1, Math.max(0, (state - 0.72) / 0.26)));
-        if (veil2) veil2.style.opacity = String(state * 0.22);
-        /* keep animating only while in the hero region or while easing is still settling */
-        if (scrollY < cinema.offsetHeight || state !== target) requestAnimationFrame(heroLoop);
-        else heroRunning = false;
+        if (heroAndersen) heroAndersen.style.opacity = String(1 - Math.min(1, Math.max(0, (s - 0.06) / 0.16)));
+        if (phaseB) phaseB.style.opacity = String(Math.min(1, Math.max(0, (s - 0.72) / 0.26)));
+        if (veil2) veil2.style.opacity = String(s * 0.22);
       };
-      addEventListener('scroll', function () { if (!heroRunning) { heroRunning = true; requestAnimationFrame(heroLoop); } }, { passive: true });
-      heroRunning = true; requestAnimationFrame(heroLoop);
+      if (!lenis) {   /* no smooth scroll → drive the hero on native scroll (rAF-throttled) */
+        var hTick = false;
+        addEventListener('scroll', function () { if (!hTick) { hTick = true; requestAnimationFrame(function () { hTick = false; heroFrame(); }); } }, { passive: true });
+      }
+      heroFrame();
     }
   }
 
@@ -165,7 +176,7 @@
       reads.forEach(function (o) {                                                                       // then all writes
         if (o.r.bottom < 0 || o.r.top > vh) return;
         var t = (o.r.top + o.r.height / 2 - vh / 2) / vh;
-        o.el.style.transform = 'translateY(' + (t * -6) + '%)';
+        o.el.style.transform = 'translateY(' + (t * -10) + '%)';
       });
     };
     addEventListener('scroll', function () { if (!parTick) { parTick = true; requestAnimationFrame(parRun); } }, { passive: true });
@@ -175,14 +186,16 @@
 
   /* ---------- shared slider controls: injected arrows + swipe (RTL-aware) ---------- */
   function addArrows(box, ariaPrev, ariaNext, onPrev, onNext) {
-    var mk = function (cls, aria, glyph) {
+    var CHEV_R = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
+    var CHEV_L = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+    var mk = function (cls, aria, svg) {
       var b = document.createElement('button');
       b.type = 'button'; b.className = 'sld-arrow ' + cls;
-      b.setAttribute('aria-label', aria); b.textContent = glyph;
+      b.setAttribute('aria-label', aria); b.innerHTML = svg;
       return b;
     };
-    var prev = mk('prev', ariaPrev, '›'); // › on the right = previous (RTL)
-    var next = mk('next', ariaNext, '‹'); // ‹ on the left  = next/forward (RTL)
+    var prev = mk('prev', ariaPrev, CHEV_R); // points right = previous (RTL)
+    var next = mk('next', ariaNext, CHEV_L); // points left  = next/forward (RTL)
     prev.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); onPrev(); });
     next.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); onNext(); });
     box.appendChild(prev); box.appendChild(next);

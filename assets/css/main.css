@@ -61,7 +61,15 @@ h1 b,h2 b{font-weight:400;}
 @keyframes preOut{to{opacity:0;transform:scale(1.04);}}
 @keyframes ul{to{width:150px;}}
 
-/* custom cursor removed for performance (was #dot/#ring + perpetual rAF) */
+/* custom cursor — fine pointers only; GPU transform, rAF sleeps when idle */
+#dot,#ring{position:fixed;top:0;left:0;border-radius:50%;pointer-events:none;z-index:9999;opacity:0;will-change:transform;}
+#dot{width:7px;height:7px;margin:-3.5px 0 0 -3.5px;background:var(--brand);transition:opacity .3s;}
+#ring{width:34px;height:34px;margin:-17px 0 0 -17px;border:1.5px solid var(--brand);transition:opacity .3s,width .25s,height .25s,margin .25s,background-color .25s;}
+body.cursor-on #dot,body.cursor-on #ring{opacity:1;}
+#ring.big{width:56px;height:56px;margin:-28px 0 0 -28px;background:rgba(61,184,107,.10);}
+body.cursor-on,body.cursor-on *{cursor:none;}
+body.cursor-on input,body.cursor-on textarea,body.cursor-on select{cursor:auto;}
+@media (hover:none),(pointer:coarse){#dot,#ring{display:none;}}
 
 /* ---------- header ---------- */
 header.site{position:fixed;top:0;right:0;left:0;display:flex;align-items:center;justify-content:space-between;padding:20px var(--pad);z-index:90;transition:background .4s,box-shadow .4s,padding .4s;}

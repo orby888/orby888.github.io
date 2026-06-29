@@ -31,8 +31,32 @@
      native scroll (scrollTo every frame) and was the main cause of the "heavy" feel.
      Native scrolling is smooth and light. */
 
-  /* custom cursor removed for performance: it ran a perpetual rAF and wrote left/top on
-     every mousemove (jank), and is not part of the cinematic hero. #dot/#ring no longer render. */
+  /* custom cursor (fine pointers, motion-OK): dot tracks instantly via transform (GPU, no
+     layout writes); ring trails with a rAF that sleeps once settled — no perpetual idle loop. */
+  if (fine && !reduced) {
+    var cdot = $('#dot'), cring = $('#ring');
+    if (cdot && cring) {
+      var cmx = innerWidth / 2, cmy = innerHeight / 2, crx = cmx, cry = cmy, craf = 0;
+      var cTick = function () {
+        crx += (cmx - crx) * 0.2; cry += (cmy - cry) * 0.2;
+        var dx = cmx - crx, dy = cmy - cry;
+        if (dx * dx + dy * dy < 0.05) { crx = cmx; cry = cmy; craf = 0; }
+        cring.style.transform = 'translate(' + crx + 'px,' + cry + 'px)';
+        if (craf) craf = requestAnimationFrame(cTick);
+      };
+      addEventListener('mousemove', function (e) {
+        cmx = e.clientX; cmy = e.clientY;
+        cdot.style.transform = 'translate(' + cmx + 'px,' + cmy + 'px)';
+        if (!document.body.classList.contains('cursor-on')) document.body.classList.add('cursor-on');
+        if (!craf) craf = requestAnimationFrame(cTick);
+      }, { passive: true });
+      var cSel = 'a,button,input,textarea,select,summary,label,.dict li,.more,.px-bar,.sld-arrow,.tr-dot';
+      addEventListener('mouseover', function (e) { if (e.target.closest && e.target.closest(cSel)) cring.classList.add('big'); }, { passive: true });
+      addEventListener('mouseout', function (e) { if (e.target.closest && e.target.closest(cSel)) cring.classList.remove('big'); }, { passive: true });
+      document.addEventListener('mouseleave', function () { document.body.classList.remove('cursor-on'); });
+      document.addEventListener('mouseenter', function () { document.body.classList.add('cursor-on'); });
+    }
+  }
 
   /* ---------- header + progress (scroll-driven, no idle rAF) ---------- */
   var hd = $('header.site');

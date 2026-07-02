@@ -65,8 +65,19 @@
     : null;
   document.documentElement.classList.toggle('has-smooth', !!lenis);
   var heroFrame = null;   // assigned by the cinema hero below; driven here every frame while smooth scroll is on
-  function rafLoop(t) { if (lenis) lenis.raf(t); if (heroFrame) heroFrame(); requestAnimationFrame(rafLoop); }
-  if (lenis) requestAnimationFrame(rafLoop);
+  /* the loop SLEEPS after ~1.5s without user activity (no idle battery drain) and wakes on any input */
+  var rafOn = false, lastAct = 0;
+  function rafLoop(t) {
+    if (lenis) lenis.raf(t);
+    if (heroFrame) heroFrame();
+    if (performance.now() - lastAct > 1500 && lenis && !lenis.isScrolling) { rafOn = false; return; }
+    requestAnimationFrame(rafLoop);
+  }
+  function rafWake() { lastAct = performance.now(); if (!rafOn && lenis) { rafOn = true; requestAnimationFrame(rafLoop); } }
+  if (lenis) {
+    ['wheel', 'touchstart', 'touchmove', 'pointerdown', 'keydown', 'scroll', 'resize'].forEach(function (ev) { addEventListener(ev, rafWake, { passive: true }); });
+    rafWake();
+  }
 
   /* ---------- header + progress (scroll-driven, no idle rAF) ---------- */
   var hd = $('header.site');
@@ -131,10 +142,16 @@
          Lenis smooths the scroll value, so the motion stays continuous and buttery.
          Driven by rafLoop when smooth scroll is on, else by a native-scroll fallback below. */
       var lastHeroY = -1;
+      /* total is CACHED and refreshed only on real size changes (width/orientation/load) —
+         mobile URL-bar collapses change innerHeight mid-scroll and must NOT shift the math */
+      var heroTotal = Math.max(1, cinema.offsetHeight - innerHeight), heroVW = innerWidth;
+      var heroRecalc = function () { heroTotal = Math.max(1, cinema.offsetHeight - innerHeight); lastHeroY = -1; };
+      addEventListener('resize', function () { if (Math.abs(innerWidth - heroVW) > 1) { heroVW = innerWidth; heroRecalc(); } }, { passive: true });
+      addEventListener('orientationchange', function () { heroVW = innerWidth; heroRecalc(); });
+      addEventListener('load', heroRecalc);
       heroFrame = function () {
         if (scrollY === lastHeroY) return; lastHeroY = scrollY;
-        var total = cinema.offsetHeight - innerHeight;
-        var s = total > 0 ? Math.min(1, Math.max(0, scrollY / total)) : 0;
+        var s = Math.min(1, Math.max(0, scrollY / heroTotal));
         if (outImg) {
           outImg.style.transform = 'scale(' + (1 + s * 0.34) + ')';
           outImg.style.opacity = String(1 - Math.min(1, Math.max(0, (s - 0.45) / 0.4)));
@@ -372,9 +389,11 @@
       if (err) err.style.display = 'none';
       var btn = $('button[type="submit"]', form);
       var orig = btn ? btn.textContent : '';
-      if (btn) { btn.disabled = true; btn.textContent = 'שולחים...'; }
+      if (btn) { btn.disabled = true; btn.textContent = 'שולחים... '; btn.classList.add('sending'); btn.setAttribute('aria-busy', 'true'); }
       var data = new FormData(form);
-      fetch(form.action, { method: 'POST', body: data, headers: { 'Accept': 'application/json' } })
+      /* the FormSubmit URL is composed here at runtime — the raw email never sits in the HTML */
+      var fsUrl = 'https://formsubmit.co/ajax/' + atob(form.getAttribute('data-fs') || '');
+      fetch(fsUrl, { method: 'POST', body: data, headers: { 'Accept': 'application/json' } })
         .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
         .then(function (j) {
           if (j && String(j.success) === 'false') throw new Error('not delivered');
@@ -383,7 +402,7 @@
         })
         .catch(function () {
           if (err) err.style.display = 'block';
-          if (btn) { btn.disabled = false; btn.textContent = orig; }
+          if (btn) { btn.disabled = false; btn.textContent = orig; btn.classList.remove('sending'); btn.removeAttribute('aria-busy'); }
         });
     });
   });

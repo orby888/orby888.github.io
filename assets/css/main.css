@@ -242,14 +242,15 @@ section.wrap,div.wrap-x{padding:0 var(--pad);position:relative;}
 .win .glass img.show{opacity:1;transform:scale(1);}
 .win .cap{position:absolute;bottom:26px;right:26px;background:rgba(251,250,248,.94);padding:9px 15px;font-size:12px;z-index:5;}
 .sash{position:absolute;inset:14px;z-index:4;display:grid;grid-template-columns:1fr 1fr;pointer-events:none;}
-.sash > div{border:1px solid rgba(47,48,48,.7);background:linear-gradient(120deg,rgba(255,255,255,.16),rgba(255,255,255,.05));backdrop-filter:blur(1.5px);transition:transform 1.6s cubic-bezier(.19,1,.22,1);}
+.sash > div{border:1px solid rgba(47,48,48,.7);background:linear-gradient(120deg,rgba(255,255,255,.16),rgba(255,255,255,.05));backdrop-filter:blur(1.5px);transition:transform 1.4s cubic-bezier(.19,1,.22,1),opacity .9s ease .45s;}
 .sash .r{transform-origin:right center;}
 .sash .l{transform-origin:left center;}
 .sash > div::after{content:"";position:absolute;top:50%;width:6px;height:32px;transform:translateY(-50%);background:var(--ink);border-radius:3px;}
 .sash .r::after{left:7px;}
 .sash .l::after{right:7px;}
-.win.open .sash .r{transform:rotateY(-78deg);}
-.win.open .sash .l{transform:rotateY(78deg);}
+.win.open .sash .r{transform:rotateY(-92deg);}
+.win.open .sash .l{transform:rotateY(92deg);}
+.win.open .sash > div{opacity:0;}   /* panes swing open AND fade fully — no blurred glass left over the photo */
 
 /* numbers band */
 .nums{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--line);border-top:1px solid var(--line);}
@@ -557,6 +558,7 @@ footer.site .mono{font-size:10px;color:#6E6E68;margin-top:40px;display:block;tex
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important;}
   [data-io]{opacity:1;transform:none;}
   .gal a[data-io]{opacity:1;clip-path:none;}
+  .sash{display:none;}   /* no window-opening gimmick under reduced-motion — show the photo directly */
   .cinema{height:100vh;}
   #pre{display:none !important;}
   .reveal-line > span{transform:none;}
